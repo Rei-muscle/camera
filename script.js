@@ -138,8 +138,44 @@ function onResults(results) {
     const mainEmotion = getMainEmotion(expressions);
 
     updateEmotionDisplay(mainEmotion, expressions);
+    drawFaceMesh(landmarks);
     drawFaceBox(landmarks, mainEmotion);
     updateStatus(`✅ 已偵測到臉部 | 主要表情：${translateEmotion(mainEmotion)}`);
+}
+
+function drawFaceMesh(landmarks) {
+    const connections = window.FACEMESH_TESSELATION || window.FACEMESH_LIPS || [];
+    const scaleX = canvas.width;
+    const scaleY = canvas.height;
+
+    ctx.strokeStyle = 'rgba(0, 255, 170, 0.6)';
+    ctx.lineWidth = 0.8;
+
+    for (const connection of connections) {
+        const start = landmarks[connection[0]];
+        const end = landmarks[connection[1]];
+        if (!start || !end) continue;
+        ctx.beginPath();
+        ctx.moveTo(start.x * scaleX, start.y * scaleY);
+        ctx.lineTo(end.x * scaleX, end.y * scaleY);
+        ctx.stroke();
+    }
+
+    drawKeyPoints(landmarks, [33, 133, 61, 291, 159, 145, 386, 374, 10, 152]);
+}
+
+function drawKeyPoints(landmarks, indices) {
+    const scaleX = canvas.width;
+    const scaleY = canvas.height;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+
+    for (const index of indices) {
+        const point = landmarks[index];
+        if (!point) continue;
+        ctx.beginPath();
+        ctx.arc(point.x * scaleX, point.y * scaleY, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+    }
 }
 
 function estimateExpression(landmarks) {
